@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Энергия Роста - Образовательная Платформа</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .animate-fadeIn {
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-pulse-slow {
+      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .badge-earned {
+      animation: badgeGlow 2s ease-in-out infinite;
+    }
+    
+    @keyframes badgeGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.8); }
+    }
+    
+    .progress-bar {
+      transition: width 0.5s ease-out;
+    }
+    
+    .group:hover .group-hover\:scale-110 {
+      transform: scale(1.1);
+    }
+    
+    .group:hover .group-hover\:translate-x-1 {
+      transform: translateX(4px);
+    }
+    
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #6366f1;
+      border-radius: 4px;
+    }
+    
+    .accessibility-mode ::-webkit-scrollbar-track {
+      background: #000;
+    }
+    
+    .accessibility-mode ::-webkit-scrollbar-thumb {
+      background: #fff;
+    }
+    
+    .course-card-description {
+      line-height: 1.5;
+      overflow-y: auto;
+      max-height: 120px;
+    }
+    
+    .course-card-description::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .course-card-description::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    
+    .course-card-description::-webkit-scrollbar-thumb {
+      background: #6366f1;
+      border-radius: 4px;
+    }
+    
+    .accessibility-mode .course-card-description::-webkit-scrollbar-track {
+      background: #333;
+    }
+    
+    .accessibility-mode .course-card-description::-webkit-scrollbar-thumb {
+      background: #fff;
+    }
+    
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 1rem;
+    }
+    
+    @media (min-width: 1280px) {
+      .badge-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+    
+    .badge-item {
+      word-break: break-word;
+      white-space: normal;
+    }
+    
+    /* Мобильная навигация - показывается только на телефонах */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 12px 20px;
+      z-index: 100;
+      display: flex;
+    }
+    
+    .accessibility-mode .mobile-nav {
+      background: black;
+      border-top: 2px solid white;
+    }
+    
+    /* Скрываем на экранах больше 768px (планшеты и десктопы) */
+    @media (min-width: 768px) {
+      .mobile-nav {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    // ==================== DATA & CONSTANTS ====================
+    const CourseLevel = {
+      BEGINNER: 'Начальный',
+      INTERMEDIATE: 'Средний',
+      ADVANCED: 'Продвинутый'
+    };
+    
+    const VideoType = {
+      TUTORIAL: 'Видеоурок',
+      WEBINAR: 'Вебинар',
+      LIFEHACK: 'Лайфхак',
+      INTERVIEW: 'Интервью'
+    };
+    
+    const FIN_COURSE = {
+      id: 'c7',
+      title: 'Финансовая Грамотность',
+      category: 'Финансы',
+      level: CourseLevel.BEGINNER,
+      duration: 24,
+      popularity: 100,
+      description: 'Курс финансовой грамотности: 24 темы, тесты, бейджи и отслеживание прогресса. Достижения: Первый шаг, Новичок, Продвинутый, Эксперт, Отличник, Быстрый.',
+      rating: 4.9,
+      completionRate: 0,
+      accentColor: 'indigo',
+      instructor: {
+        name: 'Энергия Роста',
+        role: 'Образовательная платформа',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Energy'
+      },
+      isRecommended: true
+    };
+    
+    const COURSES = [
+      {
+        id: 'c1',
+        title: 'Python для Data Science: От нуля до Pro',
+        category: 'Программирование',
+        level: CourseLevel.BEGINNER,
+        duration: 45,
+        popularity: 98,
+        description: 'Мастер-класс по обработке данных, визуализации и основам машинного обучения на Python.',
+        rating: 4.9,
+        completionRate: 92,
+        accentColor: 'emerald',
+        image: 'https://image.qwenlm.ai/public_source/e8b545e5-3a37-4bff-b2eb-56771d3c3056/1c1a4dc8d-dac0-4f84-94f1-cdf8c0b072f3.png',
+        instructor: {
+          name: 'Александр Волков',
+          role: 'Senior Data Scientist @ Yandex',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex'
+        }
+      },
+      {
+        id: 'c2',
+        title: 'Высшая математика в ИИ',
+        category: 'Математика',
+        level: CourseLevel.ADVANCED,
+        duration: 60,
+        popularity: 85,
+        description: 'Линейная алгебра и матстатистика, необходимые для глубокого понимания нейросетей.',
+        rating: 4.8,
+        completionRate: 65,
+        accentColor: 'indigo',
+        instructor: {
+          name: 'Елена Соколова',
+          role: 'PhD in Mathematics',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elena'
+        }
+      },
+      {
+        id: 'c3',
+        title: 'Продуктовый Дизайн: UX/UI 2025',
+        category: 'Дизайн',
+        level: CourseLevel.INTERMEDIATE,
+        duration: 32,
+        popularity: 94,
+        description: 'Создание современных интерфейсов, работа в Figma и проведение UX-исследований.',
+        rating: 4.7,
+        completionRate: 88,
+        accentColor: 'pink',
+        image: 'https://image.qwenlm.ai/public_source/e8b545e5-3a37-4bff-b2eb-56771d3c3056/11e26b53e-952c-46c9-b5a8-a35ca7882259.png',
+        instructor: {
+          name: 'Марк Романов',
+          role: 'Design Lead @ Ozon',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mark'
+        }
+      },
+      {
+        id: 'c4',
+        title: 'Личные финансы и Инвестиции',
+        category: 'Финансы',
+        level: CourseLevel.BEGINNER,
+        duration: 15,
+        popularity: 91,
+        description: 'Как управлять капиталом, выбирать акции и формировать пенсионный портфель.',
+        rating: 4.9,
+        completionRate: 95,
+        accentColor: 'amber',
+        image: 'https://image.qwenlm.ai/public_source/e8b545e5-3a37-4bff-b2eb-56771d3c3056/132488be7-949f-479f-9c15-550d55c9567c.png',
+        instructor: {
+          name: 'Виктория Ким',
+          role: 'Финансовый советник',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vicky'
+        }
+      },
+      {
+        id: 'c5',
+        title: 'Frontend-разработка на React',
+        category: 'Программирование',
+        level: CourseLevel.INTERMEDIATE,
+        duration: 40,
+        popularity: 96,
+        description: 'Погружение в современные веб-технологии: React 19, Hooks, State Management и Performance.',
+        rating: 4.9,
+        completionRate: 82,
+        accentColor: 'cyan',
+        instructor: {
+          name: 'Дмитрий Петров',
+          role: 'Frontend Architect',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dima'
+        }
+      },
+      {
+        id: 'c6',
+        title: 'Стратегический Менеджмент',
+        category: 'Бизнес',
+        level: CourseLevel.ADVANCED,
+        duration: 25,
+        popularity: 78,
+        description: 'Как строить бизнес-стратегии в условиях неопределенности и масштабировать проекты.',
+        rating: 4.6,
+        completionRate: 70,
+        accentColor: 'rose',
+        instructor: {
+          name: 'Анна Кравцова',
+          role: 'CEO @ StartupHub',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anna'
+        }
+      },
+      FIN_COURSE
+    ];
+    
+    const VIDEOS = [
+      {
+        id: 'v1',
+        title: 'Как войти в IT в 2025 году?',
+        category: 'Карьера',
+        type: VideoType.INTERVIEW,
+        durationMinutes: 24,
+        views: 45000,
+        popularity: 99,
+        author: 'Иван Технолог',
+        authorInitials: 'ИТ',
+        description: 'Честный разговор о рынке труда, зарплатах и необходимых технологиях для новичков.',
+        dateStr: 'Вчера',
+        gradient: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+        isTrending: true
+      },
+      {
+        id: 'v3',
+        title: 'Мастер-класс: SQL за 30 минут',
+        category: 'Программирование',
+        type: VideoType.TUTORIAL,
+        durationMinutes: 30,
+        views: 89200,
+        popularity: 95,
+        author: 'Максим Базовый',
+        authorInitials: 'МБ',
+        description: 'Все основные команды: SELECT, JOIN, GROUP BY на реальных примерах из e-commerce.',
+        dateStr: '1 неделю назад',
+        gradient: 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)',
+        isTrending: true
+      },
+      {
+        id: 'v4',
+        title: 'Психология продуктивности',
+        category: 'Психология',
+        type: VideoType.WEBINAR,
+        durationMinutes: 45,
+        views: 21500,
+        popularity: 92,
+        author: 'Елена Псих',
+        authorInitials: 'ЕП',
+        description: 'Почему мы прокрастинируем и как настроить мозг на работу без выгорания.',
+        dateStr: '2 недели назад',
+        gradient: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)'
+      },
+      {
+        id: 'v5',
+        title: 'Основы Prompt Engineering',
+        category: 'Искусственный Интеллект',
+        type: VideoType.TUTORIAL,
+        durationMinutes: 12,
+        views: 56000,
+        popularity: 97,
+        author: 'Артем Нейро',
+        authorInitials: 'АН',
+        description: 'Как писать запросы к LLM (Gemini, GPT), чтобы получать идеальные результаты с первого раза.',
+        dateStr: '4 дня назад',
+        gradient: 'linear-gradient(135deg, #6366F1 0%, #A855F7 100%)',
+        isTrending: true
+      },
+      {
+        id: 'v6',
+        title: 'Тайм-менеджмент: метод Помодоро',
+        category: 'Личная эффективность',
+        type: VideoType.LIFEHACK,
+        durationMinutes: 8,
+        views: 15400,
+        popularity: 84,
+        author: 'Ольга Про',
+        authorInitials: 'ОП',
+        description: 'Простой лайфхак, который удвоит вашу концентрацию при выполнении рутинных задач.',
+        dateStr: '5 дней назад',
+        gradient: 'linear-gradient(135deg, #F43F5E 0%, #FB923C 100%)'
+      }
+    ];
+    
+    // Financial Literacy Course Data - Complete
+    const FIN_COURSE_DATA = {
+      beginner: {
+        id: 'fin-beginner',
+        title: 'Начинающий',
+        icon: '🌱',
+        color: 'emerald',
+        topics: [
+          { id: 'f1', title: 'Что такое деньги?', duration: 2, theory: 'Деньги — это универсальное средство обмена, которое позволяет нам покупать товары и услуги. Они появились тысячи лет назад, эволюционировав от бартера до современных цифровых валют.', practice: 'Проанализируйте свои расходы за последнюю неделю. Разделите их на необходимые и желаемые.', infographic: '💰 Деньги выполняют 3 функции:\n• Средство обмена\n• Мера стоимости\n• Средство накопления', steps: ['Изучите историю денег', 'Поймите функции денег', 'Различайте наличные и безналичные'], questions: [{ q: 'Что такое деньги?', a: ['Средство обмена', 'Просто бумага', 'Нечто волшебное'], correct: 0 }, { q: 'Какая функция НЕ относится к деньгам?', a: ['Средство обмена', 'Мера стоимости', 'Средство передвижения'], correct: 2 }] },
+          { id: 'f2', title: 'Личный бюджет', duration: 2, theory: 'Личный бюджет — это план ваших доходов и расходов. Правильное ведение бюджета помогает контролировать финансы и достигать целей.', practice: 'Составьте таблицу доходов и расходов на месяц. Используйте правило 50/30/20.', infographic: '📊 Правило 50/30/20:\n50% — Необходимое\n30% — Желания\n20% — Сбережения', steps: ['Запишите все доходы', 'Категоризируйте расходы', 'Настройте баланс'], questions: [{ q: 'Какой процент рекомендуется откладывать?', a: ['10%', '20%', '50%'], correct: 1 }] },
+          { id: 'f3', title: 'Банковские продукты', duration: 2, theory: 'Банки предлагают различные продукты: счета, карты, кредиты, депозиты. Важно понимать условия каждого продукта.', practice: 'Сравните условия 3 банков по дебетовым картам. Обратите внимание на кэшбэк и обслуживание.', infographic: '🏦 Основные продукты:\n• Дебетовая карта\n• Кредитная карта\n• Депозит\n• Кредит', steps: ['Изучите типы счетов', 'Сравните условия', 'Выберите оптимальный'], questions: [{ q: 'Что такое кэшбэк?', a: ['Комиссия банка', 'Возврат части расходов', 'Тип кредита'], correct: 1 }] },
+          { id: 'f4', title: 'Финансовая подушка', duration: 3, theory: 'Финансовая подушка — это резерв денег на случай непредвиденных ситуаций. Рекомендуется иметь запас на 3-6 месяцев расходов.', practice: 'Рассчитайте сумму вашей финансовой подушки. Начните откладывать 10% от дохода.', infographic: '🛡️ Подушка безопасности:\n3-6 месяцев расходов\nХранить на отдельном счёте\nНе тратить без необходимости', steps: ['Рассчитайте ежемесячные расходы', 'Умножьте на 3-6', 'Откройте накопительный счёт'], questions: [{ q: 'На сколько месяцев расходов нужна подушка?', a: ['1-2 месяца', '3-6 месяцев', '10-12 месяцев'], correct: 1 }] },
+          { id: 'f5', title: 'Кредиты и долги', duration: 2, theory: 'Кредит — это заёмные деньги, которые нужно вернуть с процентами. Важно понимать полную стоимость кредита и избегать долговой ямы.', practice: 'Рассчитайте полную стоимость кредита на примере. Сравните предложения разных банков.', infographic: '⚠️ Важно знать:\n• Полная стоимость кредита (ПСК)\n• Процентная ставка\n• Срок кредита\n• Штрафы', steps: ['Изучите ПСК', 'Сравните предложения', 'Оцените платёжеспособность'], questions: [{ q: 'Что такое ПСК?', a: ['Первый страховой взнос', 'Полная стоимость кредита', 'Персональный счёта клиента'], correct: 1 }] },
+          { id: 'f6', title: 'Налоги для физических лиц', duration: 3, theory: 'НДФЛ — налог на доходы физических лиц. В России стандартная ставка 13%. Есть возможность получить налоговые вычеты.', practice: 'Узнайте, какие налоговые вычеты вам доступны. Подготовьте документы для вычета.', infographic: '📋 Налоговые вычеты:\n• Образовательный\n• Медицинский\n• Имущественный\n• Инвестиционный', steps: ['Изучите виды вычетов', 'Соберите документы', 'Подайте декларацию'], questions: [{ q: 'Какая стандартная ставка НДФЛ в РФ?', a: ['10%', '13%', '20%'], correct: 1 }] },
+          { id: 'f7', title: 'Страхование', duration: 3, theory: 'Страхование защищает от финансовых потерь. Основные виды: медицинское, имущественное, жизни, ответственности.', practice: 'Оцените свои риски. Определите, какие виды страхования вам необходимы.', infographic: '🛡️ Виды страхования:\n• ОМС/ДМС\n• Имущества\n• Жизни\n• Ответственности', steps: ['Оцените риски', 'Выберите виды страхования', 'Сравните предложения'], questions: [{ q: 'Что защищает страхование имущества?', a: ['Здоровье', 'Недвижимость и вещи', 'Доходы'], correct: 1 }] },
+          { id: 'f8', title: 'Пенсионное планирование', duration: 3, theory: 'Пенсия складывается из государственной и накопительной части. Начинать планировать нужно как можно раньше.', practice: 'Рассчитайте желаемую пенсию. Изучите варианты накопительных программ.', infographic: '👴 Пенсия состоит из:\n• Страховая часть\n• Накопительная часть\n• Личные сбережения', steps: ['Рассчитайте желаемый доход', 'Изучите НПФ', 'Начните откладывать'], questions: [{ q: 'Когда лучше начинать пенсионное планирование?', a: ['За год до пенсии', 'Как можно раньше', 'После выхода на пенсию'], correct: 1 }] }
+        ]
+      },
+      intermediate: {
+        id: 'fin-intermediate',
+        title: 'Средний',
+        icon: '📈',
+        color: 'amber',
+        topics: [
+          { id: 'f9', title: 'Инвестиции: основы', duration: 3, theory: 'Инвестиции — это вложение денег с целью получения дохода. Основные инструменты: акции, облигации, фонды.', practice: 'Откройте брокерский счёт. Изучите интерфейс торговой платформы.', infographic: '📈 Инструменты:\n• Акции\n• Облигации\n• ETF\n• ПИФы', steps: ['Откройте брокерский счёт', 'Изучите инструменты', 'Начните с малого'], questions: [{ q: 'Что такое акция?', a: ['Долг компании', 'Доля в компании', 'Банковский продукт'], correct: 1 }] },
+          { id: 'f10', title: 'Фондовый рынок', duration: 4, theory: 'Фондовый рынок — место торговли ценными бумагами. Основные биржи: MOEX, NYSE, NASDAQ.', practice: 'Изучите котировки основных компаний. Проанализируйте динамику за год.', infographic: '🏢 Биржи:\n• MOEX (Россия)\n• NYSE (США)\n• NASDAQ (США)\n• LSE (Великобритания)', steps: ['Выберите биржу', 'Изучите инструменты', 'Начните торговать'], questions: [{ q: 'Какая биржа основная в России?', a: ['NYSE', 'MOEX', 'NASDAQ'], correct: 1 }] },
+          { id: 'f11', title: 'Диверсификация', duration: 4, theory: 'Диверсификация — распределение инвестиций между разными активами для снижения рисков.', practice: 'Создайте диверсифицированный портфель из 5-7 разных активов.', infographic: '🎯 Диверсификация:\n• По классам активов\n• По отраслям\n• По странам\n• По валютам', steps: ['Определите цели', 'Выберите классы активов', 'Распределите капитал'], questions: [{ q: 'Зачем нужна диверсификация?', a: ['Увеличить доход', 'Снизить риски', 'Упростить управление'], correct: 1 }] },
+          { id: 'f12', title: 'Облигации', duration: 3, theory: 'Облигация — долговая ценная бумага. Эмитент выплачивает купоны и возвращает номинал.', practice: 'Сравните доходности облигаций разных эмитентов. Рассчитайте доходность к погашению.', infographic: '💵 Параметры облигации:\n• Номинал\n• Купон\n• Срок\n• Доходность', steps: ['Изучите типы облигаций', 'Оцените риски', 'Выберите подходящие'], questions: [{ q: 'Что такое купон облигации?', a: ['Цена облигации', 'Процентный платеж', 'Срок погашения'], correct: 1 }] },
+          { id: 'f13', title: 'Акции и дивиденды', duration: 4, theory: 'Акции дают право на долю в компании. Дивиденды — часть прибыли, распределяемая между акционерами.', practice: 'Изучите дивидендную историю компаний. Рассчитайте дивидендную доходность.', infographic: '📊 Дивиденды:\n• Дивидендная доходность\n• Дата отсечки\n• Выплата\n• Рост', steps: ['Выберите компании', 'Изучите историю', 'Купите акции'], questions: [{ q: 'Что такое дивидендная доходность?', a: ['Цена акции', 'Дивиденды/Цена акции', 'Количество акций'], correct: 1 }] },
+          { id: 'f14', title: 'ETF и ПИФы', duration: 2, theory: 'ETF и ПИФы — фонды, которые инвестируют в набор активов. Позволяют диверсифицироваться с малым капиталом.', practice: 'Сравните комиссии разных фондов. Изучите состав портфеля.', infographic: '📦 Преимущества фондов:\n• Диверсификация\n• Низкий порог входа\n• Профессиональное управление', steps: ['Изучите типы фондов', 'Сравните комиссии', 'Выберите фонд'], questions: [{ q: 'В чём главное преимущество ETF?', a: ['Высокая доходность', 'Диверсификация', 'Гарантии'], correct: 1 }] },
+          { id: 'f15', title: 'Риски в инвестициях', duration: 3, theory: 'Инвестиционные риски: рыночный, кредитный, валютный, инфляционный. Важно их понимать и управлять ими.', practice: 'Оцените риски вашего портфеля. Разработайте стратегию управления рисками.', infographic: '⚠️ Типы рисков:\n• Рыночный\n• Кредитный\n• Валютный\n• Инфляционный', steps: ['Идентифицируйте риски', 'Оцените вероятность', 'Разработайте защиту'], questions: [{ q: 'Что такое инфляционный риск?', a: ['Падение рынка', 'Обесценивание денег', 'Дефолт эмитента'], correct: 1 }] },
+          { id: 'f16', title: 'Технический анализ', duration: 2, theory: 'Технический анализ — изучение графиков и индикаторов для прогнозирования движения цен.', practice: 'Изучите основные индикаторы: MA, RSI, MACD. Примените на практике.', infographic: '📈 Индикаторы:\n• Скользящие средние\n• RSI\n• MACD\n• Уровни поддержки/сопротивления', steps: ['Изучите основы', 'Настройте индикаторы', 'Практикуйтесь'], questions: [{ q: 'Что показывает RSI?', a: ['Тренд', 'Перекупленность/перепроданность', 'Объём'], correct: 1 }] }
+        ]
+      },
+      advanced: {
+        id: 'fin-advanced',
+        title: 'Продвинутый',
+        icon: '🚀',
+        color: 'indigo',
+        topics: [
+          { id: 'f17', title: 'Опционы и фьючерсы', duration: 4, theory: 'Производные финансовые инструменты. Опционы дают право, фьючерсы — обязательство купить/продать актив.', practice: 'Изучите механику работы опционов. Рассчитайте прибыль/убыток.', infographic: '📊 Деривативы:\n• Опционы (право)\n• Фьючерсы (обязательство)\n• Свопы\n• Форварды', steps: ['Изучите базовые понятия', 'Поймите механику', 'Практикуйтесь на демо'], questions: [{ q: 'В чём разница опциона и фьючерса?', a: ['Нет разницы', 'Право vs обязательство', 'Разные биржи'], correct: 1 }] },
+          { id: 'f18', title: 'Управление портфелем', duration: 5, theory: 'Профессиональное управление инвестиционным портфелем: ребалансировка, оптимизация, оценка эффективности.', practice: 'Создайте модель портфеля. Проведите ребалансировку.', infographic: '🎯 Управление:\n• Ребалансировка\n• Оптимизация\n• Оценка рисков\n• Мониторинг', steps: ['Определите стратегию', 'Настройте аллокацию', 'Ребалансируйте'], questions: [{ q: 'Что такое ребалансировка?', a: ['Покупка новых активов', 'Восстановление пропорций', 'Продажа всех активов'], correct: 1 }] },
+          { id: 'f19', title: 'Налогообложение инвестиций', duration: 4, theory: 'Налоги на инвестиционный доход: НДФЛ с дивидендов, купонов, прибыли от продажи. ИИС и налоговые льготы.', practice: 'Рассчитайте налог с гипотетической прибыли. Изучите возможности ИИС.', infographic: '📋 Налоги:\n• 13% НДФЛ\n• ИИС (вычеты)\n• Льготное долговладение', steps: ['Изучите налоговые ставки', 'Оформите ИИС', 'Подайте декларацию'], questions: [{ q: 'Какая ставка НДФЛ с инвестиционного дохода?', a: ['10%', '13%', '20%'], correct: 1 }] },
+          { id: 'f20', title: 'Международные инвестиции', duration: 4, theory: 'Инвестиции на зарубежных рынках: валютные риски, налогообложение, доступные инструменты.', practice: 'Изучите возможности доступа к зарубежным биржам. Оцените валютные риски.', infographic: '🌍 Международные рынки:\n• США (NYSE, NASDAQ)\n• Европа (LSE, Euronext)\n• Азия (TSE, HKEX)', steps: ['Выберите рынок', 'Откройте доступ', 'Учтите налоги'], questions: [{ q: 'Какой основной риск международных инвестиций?', a: ['Валютный', 'Рыночный', 'Кредитный'], correct: 0 }] },
+          { id: 'f21', title: 'Альтернативные инвестиции', duration: 4, theory: 'Альтернативные активы: недвижимость, золото, криптовалюты, искусство, венчурные инвестиции.', practice: 'Изучите каждый класс активов. Определите долю в портфеле.', infographic: '💎 Альтернативы:\n• Недвижимость\n• Драгметаллы\n• Криптовалюты\n• Искусство', steps: ['Изучите классы', 'Оцените риски', 'Выделите долю'], questions: [{ q: 'Что НЕ относится к альтернативным инвестициям?', a: ['Недвижимость', 'Акции', 'Криптовалюты'], correct: 1 }] },
+          { id: 'f22', title: 'Криптовалюты и блокчейн', duration: 5, theory: 'Криптовалюты — цифровые активы на блокчейне. Высокая волатильность, новые технологии, регулирование.', practice: 'Изучите основные криптовалюты. Оцените риски и потенциал.', infographic: '₿ Крипторынок:\n• Биткоин\n• Эфириум\n• Альткоины\n• DeFi, NFT', steps: ['Изучите технологию', 'Выберите биржу', 'Начните с малого'], questions: [{ q: 'На какой технологии основаны криптовалюты?', a: ['SQL', 'Блокчейн', 'Облачные вычисления'], correct: 1 }] },
+          { id: 'f23', title: 'Финансовое планирование семьи', duration: 2, theory: 'Комплексное планирование семейных финансов: бюджет, цели, страхование, наследство.', practice: 'Составьте семейный финансовый план на 5 лет.', infographic: '👨‍👩‍👧‍👦 Семейные финансы:\n• Общий бюджет\n• Цели\n• Страхование\n• Наследство', steps: ['Определите цели', 'Составьте бюджет', 'Защитите активы'], questions: [{ q: 'Что важно при семейном планировании?', a: ['Только доходы', 'Все финансы семьи', 'Только расходы'], correct: 1 }] },
+          { id: 'f24', title: 'Финансовая независимость', duration: 6, theory: 'FIRE движение: Financial Independence, Retire Early. Стратегии достижения финансовой свободы.', practice: 'Рассчитайте свою цифру финансовой независимости. Разработайте план.', infographic: '🎯 FIRE:\n• Накопить 25x расходов\n• Инвестировать\n• Жить на 4% в год', steps: ['Рассчитайте цель', 'Увеличьте сбережения', 'Инвестируйте'], questions: [{ q: 'Какое правило используется в FIRE?', a: ['Правило 4%', 'Правило 50/30/20', 'Правило 10%'], correct: 0 }] }
+        ]
+      }
+    };
+    
+    const FIN_BADGES = [
+      { id: 'first_topic', name: 'Первый шаг', icon: '🌟', desc: 'Завершить первую тему', req: 1 },
+      { id: 'beginner_complete', name: 'Новичок', icon: '🌱', desc: 'Завершить уровень Начинающий', req: 8 },
+      { id: 'intermediate_complete', name: 'Продвинутый', icon: '📈', desc: 'Завершить уровень Средний', req: 16 },
+      { id: 'advanced_complete', name: 'Эксперт', icon: '🚀', desc: 'Завершить уровень Продвинутый', req: 24 },
+      { id: 'perfect_score', name: 'Отличник', icon: '🏆', desc: '100% за тест', req: 'perfect' },
+      { id: 'speed_learner', name: 'Быстрый', icon: '⚡', desc: 'Завершить 5 тем', req: 5 }
+    ];
+    
+    const translations = {
+      ru: {
+        nav_home: 'Главная',
+        nav_courses: 'Курсы',
+        nav_videos: 'Видео',
+        nav_login: 'Войти',
+        nav_profile: 'Профиль',
+        hero_title_part1: 'Эволюция',
+        hero_title_part2: 'вашего разума',
+        hero_desc: 'Объединяем человеческую экспертизу и возможности искусственного интеллекта для вашего кратного роста.',
+        hero_btn_courses: 'Исследовать Курсы',
+        hero_btn_videos: 'Видеоуроки',
+        ai_navigator_title: 'Персональный помощник',
+        ai_navigator_desc: 'В данный момент (в локальном доступе) персональный помощник не работает.',
+        video_hub_title: 'Библиотека Знаний',
+        video_hub_desc: 'Учитесь в своем темпе с нашими интерактивными видеолекциями.',
+        footer_desc: 'Передовая образовательная экосистема для вашего успеха.',
+        start_course: 'Начать курс',
+        profile_welcome: 'Добро пожаловать,',
+        profile_progress: 'Ваш прогресс',
+        profile_started_courses: 'Начатые курсы',
+        profile_stats_courses: 'Курсов начато',
+        profile_stats_hours: 'Часов обучения',
+        profile_no_courses: 'Вы еще не начали ни один курс.',
+        auth_login_title: 'Вход в систему',
+        auth_submit_login: 'Войти',
+        auth_email: 'Электронная почта',
+        auth_password: 'Пароль',
+        certificates: 'Сертификаты',
+        logout: 'Выйти',
+        duration: 'Длительность',
+        views: 'Просмотры',
+        lesson_materials: 'Материалы урока',
+        close_player: 'Закрыть плеер',
+        starting_playback: 'Начинаем просмотр',
+        search_placeholder: 'Найти курс...',
+        all_categories: 'Все',
+        all_types: 'Все выпуски',
+        accessibility_mode: 'Версия для слабовидящих',
+        back_to_home: '🏠 На главную',
+        back_to_courses: '📚 К курсам',
+        back_to_topics: '📋 К темам'
+      },
+      en: {
+        nav_home: 'Home',
+        nav_courses: 'Courses',
+        nav_videos: 'Videos',
+        nav_login: 'Login',
+        nav_profile: 'Profile',
+        hero_title_part1: 'Evolution',
+        hero_title_part2: 'of your mind',
+        hero_desc: 'Combining human expertise and AI capabilities for your exponential growth.',
+        hero_btn_courses: 'Explore Courses',
+        hero_btn_videos: 'Video Tutorials',
+        ai_navigator_title: 'Personal Assistant',
+        ai_navigator_desc: 'Currently (in local access mode) the personal assistant is not working.',
+        video_hub_title: 'Knowledge Library',
+        video_hub_desc: 'Learn at your own pace with our interactive video lectures.',
+        footer_desc: 'Advanced educational ecosystem for your success.',
+        start_course: 'Start course',
+        profile_welcome: 'Welcome,',
+        profile_progress: 'Your Progress',
+        profile_started_courses: 'Started Courses',
+        profile_stats_courses: 'Courses Started',
+        profile_stats_hours: 'Study Hours',
+        profile_no_courses: "You haven't started any courses yet.",
+        auth_login_title: 'Sign In',
+        auth_submit_login: 'Login',
+        auth_email: 'Email',
+        auth_password: 'Password',
+        certificates: 'Certificates',
+        logout: 'Logout',
+        duration: 'Duration',
+        views: 'Views',
+        lesson_materials: 'Lesson Materials',
+        close_player: 'Close Player',
+        starting_playback: 'Starting playback',
+        search_placeholder: 'Find a course...',
+        all_categories: 'All',
+        all_types: 'All Episodes',
+        accessibility_mode: 'Accessibility version',
+        back_to_home: '🏠 Home',
+        back_to_courses: '📚 Courses',
+        back_to_topics: '📋 Topics'
+      }
+    };
+    
+    const getColorClass = (color, type) => {
+      const map = {
+        emerald: {
+          sectionBg: 'bg-emerald-50',
+          sectionBorder: 'border-emerald-200',
+          title: 'text-emerald-700',
+          chipBg: 'bg-emerald-100',
+          chipText: 'text-emerald-700',
+          stepCircleBg: 'bg-emerald-600',
+          primaryBg: 'bg-emerald-600',
+          highlightBg: 'bg-emerald-100',
+          primaryText: 'text-emerald-700',
+          primaryBorder: 'border-emerald-500'
+        },
+        amber: {
+          sectionBg: 'bg-amber-50',
+          sectionBorder: 'border-amber-200',
+          title: 'text-amber-700',
+          chipBg: 'bg-amber-100',
+          chipText: 'text-amber-700',
+          stepCircleBg: 'bg-amber-600',
+          primaryBg: 'bg-amber-600',
+          highlightBg: 'bg-amber-100',
+          primaryText: 'text-amber-700',
+          primaryBorder: 'border-amber-500'
+        },
+        indigo: {
+          sectionBg: 'bg-indigo-50',
+          sectionBorder: 'border-indigo-200',
+          title: 'text-indigo-700',
+          chipBg: 'bg-indigo-100',
+          chipText: 'text-indigo-700',
+          stepCircleBg: 'bg-indigo-600',
+          primaryBg: 'bg-indigo-600',
+          highlightBg: 'bg-indigo-100',
+          primaryText: 'text-indigo-700',
+          primaryBorder: 'border-indigo-500'
+        }
+      };
+      return (map[color] && map[color][type]) || '';
+    };
+
+    // ==================== REACT COMPONENTS ====================
+    const { useState, useEffect, useMemo } = React;
+    
+    const ProgressBar = ({ current, total, isAccessible }) => {
+      const percentage = Math.round((current / total) * 100);
+      return (
+        <div className="w-full">
+          <div className="flex justify-between text-sm font-black uppercase tracking-widest mb-2 opacity-60">
+            <span>Прогресс</span>
+            <span>{percentage}%</span>
+          </div>
+          <div className={`h-4 rounded-full overflow-hidden ${isAccessible ? 'bg-white border-2 border-white' : 'bg-slate-200'}`}>
+            <div className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 progress-bar rounded-full" style={{ width: `${percentage}%` }} />
+          </div>
+        </div>
+      );
+    };
+    
+    const MobileNav = ({ currentPage, onNavigate, lang, isAccessible }) => {
+      const t = translations[lang];
+      return (
+        <div className={`mobile-nav flex justify-around items-center ${isAccessible ? 'bg-black' : 'bg-white/95 backdrop-blur-lg'}`}>
+          <button onClick={() => onNavigate('home')} className={`flex flex-col items-center gap-1 transition-all ${currentPage === 'home' ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-600'}`}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            <span className="text-[10px] font-black uppercase tracking-widest">{t.nav_home}</span>
+          </button>
+          <button onClick={() => onNavigate('courses')} className={`flex flex-col items-center gap-1 transition-all ${currentPage === 'courses' ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-600'}`}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+            <span className="text-[10px] font-black uppercase tracking-widest">{t.nav_courses}</span>
+          </button>
+          <button onClick={() => onNavigate('videos')} className={`flex flex-col items-center gap-1 transition-all ${currentPage === 'videos' ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-600'}`}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            <span className="text-[10px] font-black uppercase tracking-widest">{t.nav_videos}</span>
+          </button>
+        </div>
+      );
+    };
+    
+    const Navbar = ({ currentPage, onNavigate, lang, toggleLang, isAccessible, toggleAccessible, isLoggedIn, onAuth }) => {
+      const t = translations[lang];
+      return (
+        <nav className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-3 md:py-4 transition-colors ${isAccessible ? 'bg-black border-b-2 border-white' : 'bg-white/80 backdrop-blur-lg border-b border-slate-200'}`}>
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <button onClick={() => onNavigate('home')} className="text-xl md:text-2xl font-black flex items-center gap-2 uppercase tracking-tighter hover:text-indigo-600 transition-all">
+              🚀 <span className={`hidden sm:inline ${isAccessible ? 'text-white' : 'text-slate-900'}`}>{lang === 'ru' ? 'Энергия Роста' : 'Energy Growth'}</span>
+              <span className={`sm:hidden ${isAccessible ? 'text-white' : 'text-slate-900'}`}>ERG</span>
+            </button>
+            <div className="flex items-center gap-2 md:gap-6">
+              <button onClick={() => onNavigate('home')} className={`text-xs md:text-sm font-black uppercase tracking-widest transition-colors hidden sm:block ${currentPage === 'home' ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-600 hover:text-indigo-600'}`}>{t.nav_home}</button>
+              <button onClick={() => onNavigate('courses')} className={`text-xs md:text-sm font-black uppercase tracking-widest transition-colors hidden sm:block ${currentPage === 'courses' ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-600 hover:text-indigo-600'}`}>{t.nav_courses}</button>
+              <button onClick={() => onNavigate('videos')} className={`text-xs md:text-sm font-black uppercase tracking-widest transition-colors hidden sm:block ${currentPage === 'videos' ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-600 hover:text-indigo-600'}`}>{t.nav_videos}</button>
+              {isLoggedIn ? (
+                <button onClick={() => onNavigate('profile')} className={`text-xs md:text-sm font-black uppercase tracking-widest transition-colors ${currentPage === 'profile' ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-600 hover:text-indigo-600'}`}>{t.nav_profile}</button>
+              ) : (
+                <button onClick={onAuth} className={`px-3 md:px-6 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-black uppercase tracking-widest transition-all ${isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>{t.nav_login}</button>
+              )}
+              <button onClick={toggleLang} className={`text-[10px] md:text-xs font-black uppercase tracking-widest px-2 md:px-3 py-1 rounded-lg border transition-all ${isAccessible ? 'border-white text-white' : 'border-slate-300 text-slate-600 hover:border-indigo-400'}`}>{lang === 'ru' ? 'EN' : 'RU'}</button>
+              <button onClick={toggleAccessible} className={`text-[10px] md:text-xs font-black uppercase tracking-widest px-2 md:px-3 py-1 rounded-lg border transition-all ${isAccessible ? 'bg-white text-black border-white' : 'border-slate-300 text-slate-600 hover:border-indigo-400'}`} title={t.accessibility_mode}>👁</button>
+            </div>
+          </div>
+        </nav>
+      );
+    };
+    
+    const Footer = ({ onNavigate, lang, isAccessible }) => {
+      const t = translations[lang];
+      const currentYear = new Date().getFullYear();
+      return (
+        <footer className={`mt-24 py-8 md:py-12 border-t ${isAccessible ? 'bg-black border-white' : 'bg-slate-900 border-slate-800'}`}>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
+              <button onClick={() => onNavigate('home')} className="text-xl md:text-2xl font-black flex items-center group uppercase tracking-tighter text-white hover:text-indigo-400 transition-all">🚀 {lang === 'ru' ? 'Энергия Роста' : 'Energy Growth'}</button>
+              <div className="flex gap-4 md:gap-8">
+                <button onClick={() => onNavigate('home')} className="text-slate-400 hover:text-indigo-400 transition-colors text-xs md:text-sm font-black uppercase tracking-widest">{t.nav_home}</button>
+                <button onClick={() => onNavigate('courses')} className="text-slate-400 hover:text-indigo-400 transition-colors text-xs md:text-sm font-black uppercase tracking-widest">{t.nav_courses}</button>
+                <button onClick={() => onNavigate('videos')} className="text-slate-400 hover:text-indigo-400 transition-colors text-xs md:text-sm font-black uppercase tracking-widest">{t.nav_videos}</button>
+              </div>
+              <p className="text-slate-500 text-xs md:text-sm">Сделано для индивидуального проекта {currentYear} год</p>
+            </div>
+          </div>
+        </footer>
+      );
+    };
+    
+    const CourseCard = ({ course, onEnroll, lang = 'ru', isAccessible = false, isRecommended = false }) => {
+      const t = translations[lang];
+      const getLevelStyles = level => {
+        if (isAccessible) return 'text-white border-white';
+        switch (level) {
+          case CourseLevel.BEGINNER: return 'text-emerald-700 bg-emerald-50 border-emerald-100';
+          case CourseLevel.INTERMEDIATE: return 'text-amber-700 bg-amber-50 border-amber-100';
+          case CourseLevel.ADVANCED: return 'text-rose-700 bg-rose-50 border-rose-100';
+          default: return 'text-slate-500 bg-slate-50 border-slate-100';
+        }
+      };
+      return (
+        <div className={`group rounded-2xl md:rounded-[2rem] p-4 md:p-6 lg:p-10 border transition-all duration-500 flex flex-col h-full shadow-sm relative overflow-hidden ${isAccessible ? 'bg-black border-4 border-white text-white' : 'bg-white border-slate-200 hover:shadow-xl hover:-translate-y-3'}`}>
+          <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest px-3 md:px-4 py-1 md:py-1.5 rounded-xl border self-start ${isAccessible ? 'border-white text-white' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{course.category}</span>
+          {(isRecommended || course.isRecommended) && (
+            <span className={`mt-2 md:mt-3 text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2 md:px-4 py-1 md:py-1.5 rounded-xl border self-start ${isAccessible ? 'border-white text-black bg-white' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+              {lang === 'ru' ? '⭐ Рекомендуется' : '⭐ Recommended'}
+            </span>
+          )}
+          <h3 className="text-lg md:text-xl lg:text-2xl font-black leading-tight mb-3 md:mb-4 uppercase tracking-tighter transition-colors duration-300 mt-2 md:mt-3">{course.title}</h3>
+          <div className={`course-card-description mb-4 md:mb-6 lg:mb-10 ${isAccessible ? 'text-white' : 'text-slate-700'}`}>
+            <p className="text-sm md:text-base lg:text-lg leading-relaxed font-medium">
+              {course.description}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-6 lg:mb-10">
+            <span className={`px-2 md:px-4 py-1 md:py-1.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest border-2 ${getLevelStyles(course.level)}`}>{course.level}</span>
+            <span className={`px-2 md:px-4 py-1 md:py-1.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest border-2 ${isAccessible ? 'border-white text-white' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>{course.duration} {lang === 'ru' ? 'Ч.' : 'H.'}</span>
+          </div>
+          <div className="mt-auto pt-4 md:pt-6 lg:pt-8 border-t border-slate-100">
+            <button onClick={() => onEnroll(course)} className={`w-full py-3 md:py-4 lg:py-5 rounded-xl md:rounded-2xl text-xs md:text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center group/btn ${isAccessible ? 'bg-white text-black' : 'bg-slate-950 text-white hover:bg-indigo-600'}`}>
+              <span>{t.start_course}</span>
+              {!isAccessible && <svg className="w-4 h-4 md:w-5 md:h-5 ml-2 md:ml-3 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
+            </button>
+          </div>
+        </div>
+      );
+    };
+    
+    const AuthModal = ({ type, lang, onClose, onSuccess, isAccessible }) => {
+      const t = translations[lang];
+      return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
+          <div className={`w-full max-w-md rounded-2xl md:rounded-[3rem] p-6 md:p-8 lg:p-12 shadow-2xl relative overflow-hidden transition-colors ${isAccessible ? 'bg-black border-4 border-white text-white' : 'bg-white'}`}>
+            <button onClick={onClose} className="absolute top-4 md:top-6 right-4 md:right-6 text-slate-300 hover:text-rose-500 transition-all">
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="space-y-4 md:space-y-6 lg:space-y-8">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-black uppercase tracking-tight">{type === 'login' ? t.auth_login_title : 'Регистрация'}</h2>
+                <p className="opacity-60 font-medium text-xs md:text-sm">{lang === 'ru' ? 'Введите ваши данные' : 'Enter your details'}</p>
+              </div>
+              <form className="space-y-3 md:space-y-4" onSubmit={e => { e.preventDefault(); onSuccess(); }}>
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-[10px] md:text-[11px] font-black uppercase tracking-widest opacity-50">{t.auth_email}</label>
+                  <input type="email" required className={`w-full p-2 md:p-3 lg:p-4 rounded-xl outline-none border transition-all ${isAccessible ? 'bg-black border-white' : 'bg-slate-50 border-slate-100 focus:border-indigo-400'}`} />
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-[10px] md:text-[11px] font-black uppercase tracking-widest opacity-50">{t.auth_password}</label>
+                  <input type="password" required className={`w-full p-2 md:p-3 lg:p-4 rounded-xl outline-none border transition-all ${isAccessible ? 'bg-black border-white' : 'bg-slate-50 border-slate-100 focus:border-indigo-400'}`} />
+                </div>
+                <button type="submit" className={`w-full py-3 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 mt-2 md:mt-4 ${isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>{type === 'login' ? t.auth_submit_login : 'Создать аккаунт'}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    };
+    
+    const FinTopicViewer = ({ topic, onClose, onComplete, isAccessible, levelColor, onNavigate }) => {
+      const [currentSection, setCurrentSection] = useState('theory');
+      const [quizAnswers, setQuizAnswers] = useState({});
+      const [quizSubmitted, setQuizSubmitted] = useState(false);
+      const [quizScore, setQuizScore] = useState(0);
+      const t = translations.ru;
+      
+      const handleQuizSubmit = () => {
+        const correct = topic.questions.filter((q, i) => quizAnswers[i] === q.correct).length;
+        const score = Math.round((correct / topic.questions.length) * 100);
+        setQuizScore(score);
+        setQuizSubmitted(true);
+        if (score >= 70) onComplete(topic.id, score);
+      };
+      
+      const sections = [
+        { id: 'theory', name: 'Теория', icon: '📚' },
+        { id: 'practice', name: 'Практика', icon: '💼' },
+        { id: 'infographic', name: 'Инфографика', icon: '📊' },
+        { id: 'steps', name: 'Шаги', icon: '👣' },
+        { id: 'quiz', name: 'Тест', icon: '✍️' }
+      ];
+      
+      return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn">
+          <div className={`rounded-xl md:rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col ${isAccessible ? 'bg-black border-4 border-white text-white' : 'bg-white text-slate-900'}`}>
+            <div className={`p-2 md:p-4 border-b flex items-center justify-between gap-2 md:gap-4 ${isAccessible ? 'border-white bg-black' : 'border-slate-100 bg-slate-50'}`}>
+              <div className="flex items-center gap-1 md:gap-2">
+                <button onClick={() => onNavigate('home')} className={`px-2 md:px-4 py-1 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-sm font-black uppercase tracking-widest transition-all ${isAccessible ? 'bg-white text-black hover:bg-slate-200' : 'bg-white text-slate-700 hover:bg-indigo-50 border border-slate-200'}`} title={t.back_to_home}>
+                  🏠
+                </button>
+                <button onClick={() => onNavigate('courses')} className={`px-2 md:px-4 py-1 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-sm font-black uppercase tracking-widest transition-all ${isAccessible ? 'bg-white text-black hover:bg-slate-200' : 'bg-white text-slate-700 hover:bg-indigo-50 border border-slate-200'}`} title={t.back_to_courses}>
+                  📚
+                </button>
+              </div>
+              <button onClick={onClose} className={`px-2 md:px-4 py-1 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-sm font-black uppercase tracking-widest transition-all ${isAccessible ? 'bg-white text-black hover:bg-slate-200' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
+                ✕ {t.back_to_topics}
+              </button>
+            </div>
+            
+            <div className={`p-3 md:p-6 border-b flex items-center justify-between ${isAccessible ? 'border-white' : 'border-slate-100'}`}>
+              <div>
+                <h2 className="text-base md:text-xl lg:text-2xl font-black uppercase tracking-tight">{topic.title}</h2>
+                <p className={`text-xs md:text-sm ${isAccessible ? 'text-white' : 'text-slate-500'}`}>⏱ {topic.duration} минут</p>
+              </div>
+            </div>
+            <div className={`p-2 md:p-4 border-b flex flex-wrap gap-1 md:gap-2 ${isAccessible ? 'border-white' : 'border-slate-100'}`}>
+              {sections.map(section => (
+                <button key={section.id} onClick={() => setCurrentSection(section.id)} className={`px-2 md:px-4 py-1 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-sm font-black uppercase tracking-widest transition-all ${currentSection === section.id ? isAccessible ? 'bg-white text-black' : `${getColorClass(levelColor, 'primaryBg')} text-white` : isAccessible ? 'text-white border border-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{section.icon} {section.name}</button>
+              ))}
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+              {currentSection === 'theory' && <div className="space-y-4 md:space-y-6 animate-fadeIn"><h3 className="text-lg md:text-2xl font-black uppercase tracking-tight flex items-center gap-2 md:gap-3"><span className="text-2xl md:text-3xl">📚</span> Теория</h3><p className={`text-sm md:text-base lg:text-lg leading-relaxed ${isAccessible ? 'text-white' : 'text-slate-700'}`}>{topic.theory}</p></div>}
+              {currentSection === 'practice' && <div className="space-y-4 md:space-y-6 animate-fadeIn"><h3 className="text-lg md:text-2xl font-black uppercase tracking-tight flex items-center gap-2 md:gap-3"><span className="text-2xl md:text-3xl">💼</span> Практика</h3><p className={`text-sm md:text-base lg:text-lg leading-relaxed ${isAccessible ? 'text-white' : 'text-slate-700'}`}>{topic.practice}</p></div>}
+              {currentSection === 'infographic' && <div className="space-y-4 md:space-y-6 animate-fadeIn"><h3 className="text-lg md:text-2xl font-black uppercase tracking-tight flex items-center gap-2 md:gap-3"><span className="text-2xl md:text-3xl">📊</span> Инфографика</h3><div className={`p-4 md:p-6 rounded-xl md:rounded-2xl ${isAccessible ? 'bg-white text-black border-2 border-white' : 'bg-gradient-to-br from-indigo-50 to-emerald-50 border-2 border-indigo-100'}`}><pre className={`whitespace-pre-wrap font-medium text-sm md:text-base lg:text-lg ${isAccessible ? 'text-black' : 'text-slate-800'}`}>{topic.infographic}</pre></div></div>}
+              {currentSection === 'steps' && <div className="space-y-4 md:space-y-6 animate-fadeIn"><h3 className="text-lg md:text-2xl font-black uppercase tracking-tight flex items-center gap-2 md:gap-3"><span className="text-2xl md:text-3xl">👣</span> Шаги</h3><div className="space-y-2 md:space-y-4">{topic.steps.map((step, i) => (<div key={i} className={`flex items-center gap-2 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl ${isAccessible ? 'bg-white text-black border-2 border-white' : 'bg-slate-50 border border-slate-200'}`}><span className={`w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-black text-sm md:text-base lg:text-lg ${isAccessible ? 'bg-black text-white' : `${getColorClass(levelColor, 'stepCircleBg')} text-white`}`}>{i + 1}</span><span className={`font-medium text-sm md:text-base lg:text-lg ${isAccessible ? 'text-black' : 'text-slate-700'}`}>{step}</span></div>))}</div></div>}
+              {currentSection === 'quiz' && <div className="space-y-4 md:space-y-6 animate-fadeIn"><h3 className="text-lg md:text-2xl font-black uppercase tracking-tight flex items-center gap-2 md:gap-3"><span className="text-2xl md:text-3xl">✍️</span> Тест</h3><div className="space-y-4 md:space-y-6">{topic.questions.map((q, qi) => (<div key={qi} className={`p-4 md:p-6 rounded-xl md:rounded-2xl ${isAccessible ? 'bg-white text-black border-2 border-white' : 'bg-slate-50 border border-slate-200'}`}><p className={`font-black text-sm md:text-base lg:text-lg mb-2 md:mb-4 ${isAccessible ? 'text-black' : 'text-slate-900'}`}>{qi + 1}. {q.q}</p><div className="space-y-2 md:space-y-3">{q.a.map((answer, ai) => (<button key={ai} onClick={() => !quizSubmitted && setQuizAnswers({ ...quizAnswers, [qi]: ai })} disabled={quizSubmitted} className={`w-full p-2 md:p-3 lg:p-4 rounded-lg md:rounded-xl text-left font-medium text-xs md:text-sm transition-all ${quizSubmitted ? ai === q.correct ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-500' : quizAnswers[qi] === ai ? 'bg-rose-100 text-rose-700 border-2 border-rose-500' : isAccessible ? 'bg-black text-white border-2 border-white' : 'bg-white text-slate-400 border border-slate-200' : quizAnswers[qi] === ai ? isAccessible ? 'bg-white text-black border-4 border-white' : `${getColorClass(levelColor, 'highlightBg')} ${getColorClass(levelColor, 'primaryText')} border-2 ${getColorClass(levelColor, 'primaryBorder')}` : isAccessible ? 'bg-black text-white border-2 border-white' : 'bg-white text-slate-700 border border-slate-200 hover:border-indigo-400'}`}>{answer}</button>))}</div></div>))}</div>{!quizSubmitted ? (<button onClick={handleQuizSubmit} disabled={Object.keys(quizAnswers).length < topic.questions.length} className={`w-full py-3 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest transition-all ${Object.keys(quizAnswers).length < topic.questions.length ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>Завершить тест</button>) : (<div className={`p-4 md:p-6 lg:p-8 rounded-xl md:rounded-2xl text-center ${quizScore >= 70 ? 'bg-emerald-50 border-2 border-emerald-500' : 'bg-amber-50 border-2 border-amber-500'}`}><div className="text-3xl md:text-4xl lg:text-5xl mb-2 md:mb-4">{quizScore >= 70 ? '🎉' : '📚'}</div><h4 className="text-lg md:text-xl lg:text-2xl font-black uppercase tracking-tight mb-1 md:mb-2">{quizScore >= 70 ? 'Поздравляем!' : 'Попробуй ещё раз!'}</h4><p className={`text-sm md:text-base ${quizScore >= 70 ? 'text-emerald-700' : 'text-amber-700'}`}>Ваш результат: {quizScore}%</p>{quizScore >= 70 && <p className="text-xs md:text-sm text-emerald-600 mt-1 md:mt-2 font-medium">Тема завершена! +1 к прогрессу</p>}</div>)}</div>}
+            </div>
+          </div>
+        </div>
+      );
+    };
+    
+    const FinLevelSection = ({ level, completedTopics, topicScores, onTopicClick, isAccessible }) => {
+      const completedCount = level.topics.filter(t => completedTopics.includes(t.id)).length;
+      return (
+        <section className={`rounded-xl md:rounded-[2rem] p-4 md:p-6 lg:p-8 border ${isAccessible ? 'bg-black border-white' : `${getColorClass(level.color, 'sectionBg')} ${getColorClass(level.color, 'sectionBorder')}`}`}>
+          <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6">
+            <span className="text-2xl md:text-4xl">{level.icon}</span>
+            <div className="flex-1">
+              <h2 className={`text-xl md:text-2xl lg:text-3xl font-black uppercase tracking-tight ${isAccessible ? 'text-white' : getColorClass(level.color, 'title')}`}>{level.title}</h2>
+              <p className={`text-xs md:text-sm ${isAccessible ? 'text-white' : 'text-slate-500'}`}>{completedCount} из {level.topics.length} тем завершено</p>
+            </div>
+          </div>
+          <ProgressBar current={completedCount} total={level.topics.length} isAccessible={isAccessible} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4 md:mt-6">
+            {level.topics.map(topic => (
+              <button key={topic.id} onClick={() => onTopicClick(topic, level.color)} className={`p-3 md:p-4 lg:p-6 rounded-xl md:rounded-[2rem] border text-left transition-all hover:shadow-xl hover:-translate-y-1 md:hover:-translate-y-2 ${isAccessible ? 'bg-black border-white text-white' : completedTopics.includes(topic.id) ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200'}`}>
+                <div className="flex items-start justify-between mb-2 md:mb-4">
+                  <h3 className={`text-sm md:text-base lg:text-lg font-black uppercase tracking-tight ${completedTopics.includes(topic.id) ? 'text-emerald-700' : isAccessible ? 'text-white' : 'text-slate-900'}`}>{topic.title}</h3>
+                  {completedTopics.includes(topic.id) && <span className="text-xl md:text-2xl">✅</span>}
+                </div>
+                <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm">
+                  <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[9px] md:text-[10px] ${isAccessible ? 'bg-white text-black' : `${getColorClass(level.color, 'chipBg')} ${getColorClass(level.color, 'chipText')}`}`}>⏱ {topic.duration} мин</span>
+                  {topicScores[topic.id] !== undefined && <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[9px] md:text-[10px] ${topicScores[topic.id] >= 70 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>📊 {topicScores[topic.id]}%</span>}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      );
+    };
+    
+    const FinStatsPanel = ({ completedTopics, topicScores, badges, isAccessible }) => {
+      const totalTopics = 24;
+      const completedCount = completedTopics.length;
+      const avgScore = completedCount > 0 ? Math.round(Object.values(topicScores).reduce((a, b) => a + b, 0) / completedCount) : 0;
+      const earnedBadges = badges.filter(b => b.earned).length;
+      const stats = [
+        { label: 'Тем завершено', value: `${completedCount}/${totalTopics}`, icon: '📚' },
+        { label: 'Средний балл', value: `${avgScore}%`, icon: '📊' },
+        { label: 'Бейджей', value: `${earnedBadges}/${FIN_BADGES.length}`, icon: '🏅' },
+        { label: 'Прогресс', value: `${Math.round((completedCount / totalTopics) * 100)}%`, icon: '📈' }
+      ];
+      return (
+        <div className={`rounded-xl md:rounded-[2rem] p-4 md:p-6 lg:p-8 border ${isAccessible ? 'bg-black border-white' : 'bg-white border-slate-200 shadow-xl'}`}>
+          <h3 className={`text-base md:text-lg lg:text-xl font-black uppercase tracking-tight mb-3 md:mb-4 lg:mb-6 ${isAccessible ? 'text-white' : 'text-slate-900'}`}>📊 Ваша статистика</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+            {stats.map((stat, i) => (
+              <div key={i} className={`p-2 md:p-3 lg:p-4 rounded-lg md:rounded-xl text-center ${isAccessible ? 'bg-white text-black border-2 border-white' : 'bg-slate-50 border border-slate-100'}`}>
+                <div className="text-xl md:text-2xl lg:text-3xl mb-1 md:mb-2">{stat.icon}</div>
+                <div className={`text-sm md:text-base lg:text-2xl font-black ${isAccessible ? 'text-black' : 'text-slate-900'}`}>{stat.value}</div>
+                <div className={`text-[8px] md:text-[9px] lg:text-xs font-black uppercase tracking-widest ${isAccessible ? 'text-black' : 'text-slate-500'}`}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+    
+    const FinBadgesPanel = ({ badges, isAccessible }) => (
+      <div className={`rounded-xl md:rounded-[2rem] p-4 md:p-6 lg:p-8 border ${isAccessible ? 'bg-black border-white' : 'bg-white border-slate-200 shadow-xl'}`}>
+        <h3 className={`text-base md:text-lg lg:text-xl font-black uppercase tracking-tight mb-3 md:mb-4 lg:mb-6 ${isAccessible ? 'text-white' : 'text-slate-900'}`}>🏅 Достижения</h3>
+        <div className="badge-grid">
+          {FIN_BADGES.map(badge => {
+            const earned = badges.find(b => b.id === badge.id)?.earned;
+            return (
+              <div key={badge.id} className={`badge-item p-2 md:p-3 lg:p-4 rounded-lg md:rounded-xl border text-center transition-all ${earned ? 'badge-earned' : 'opacity-40'} ${isAccessible ? 'bg-black border-white' : 'bg-white border-slate-200'}`}>
+                <div className="text-2xl md:text-3xl lg:text-4xl mb-1 md:mb-2">{badge.icon}</div>
+                <div className={`font-black text-[9px] md:text-[10px] lg:text-xs uppercase tracking-widest ${earned ? 'text-indigo-600' : isAccessible ? 'text-white' : 'text-slate-400'}`}>{badge.name}</div>
+                <div className={`text-[8px] md:text-[9px] mt-0.5 md:mt-1 leading-tight ${isAccessible ? 'text-white' : 'text-slate-500'}`}>{badge.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+    
+    const HomePage = ({ onNavigate, lang, isAccessible }) => {
+      const t = translations[lang];
+      const latestVideos = VIDEOS.slice(0, 3);
+      const finCourse = COURSES.find(c => c.id === 'c7');
+      
+      return (
+        <div className="pt-20 md:pt-24 pb-16 md:pb-12 space-y-12 md:space-y-16 lg:space-y-24 animate-fadeIn">
+          <section className={`relative rounded-xl md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden min-h-[300px] md:min-h-[400px] lg:min-h-[500px] flex items-center border mx-4 md:mx-6 ${isAccessible ? 'bg-black border-white' : 'bg-slate-900 shadow-[0_32px_64px_rgba(0,0,0,0.2)]'}`}>
+            <div className="relative z-10 w-full px-4 md:px-6 lg:px-24 py-12 md:py-16 lg:py-20 text-center flex flex-col items-center gap-4 md:gap-8 lg:gap-12">
+              <div className="space-y-3 md:space-y-6 lg:space-y-10 max-w-4xl">
+                <h1 className={`text-2xl md:text-4xl lg:text-7xl font-black leading-[1.1] tracking-tighter ${isAccessible ? 'text-white' : 'text-white'}`}>{t.hero_title_part1}<br /><span className={isAccessible ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-indigo-200 to-emerald-400'}>{t.hero_title_part2}</span></h1>
+                <p className="text-sm md:text-base lg:text-xl text-slate-400 font-medium leading-relaxed px-2">{t.hero_desc}</p>
+                <div className="flex flex-col sm:flex-row gap-3 md:gap-4 lg:gap-5 pt-2 md:pt-4 justify-center">
+                  <button onClick={() => onNavigate('courses')} className={`px-6 md:px-8 lg:px-12 py-2 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest transition-all active:scale-95 ${isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white shadow-2xl shadow-indigo-600/40 hover:bg-indigo-700'}`}>{t.hero_btn_courses}</button>
+                  <button onClick={() => onNavigate('videos')} className={`px-6 md:px-8 lg:px-12 py-2 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest transition-all ${isAccessible ? 'border-2 border-white text-white' : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'}`}>{t.hero_btn_videos}</button>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          {/* Featured Course - Финансовая Грамотность */}
+          <section className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className="text-center mb-6 md:mb-8 lg:mb-12">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-black uppercase tracking-tight">🔥 Рекомендуемый курс</h2>
+              <p className="text-sm md:text-base text-slate-500 mt-2">Стартуй к финансовой независимости уже сегодня</p>
+            </div>
+            <div className="max-w-2xl mx-auto">
+              {finCourse && (
+                <CourseCard 
+                  course={finCourse} 
+                  onEnroll={() => onNavigate('fin')} 
+                  lang={lang} 
+                  isAccessible={isAccessible} 
+                  isRecommended={true}
+                />
+              )}
+            </div>
+          </section>
+          
+          <section className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className={`rounded-xl md:rounded-[2rem] lg:rounded-[4rem] p-6 md:p-8 lg:p-12 xl:p-24 border relative overflow-hidden ${isAccessible ? 'bg-black border-white' : 'bg-white border-slate-200 shadow-xl'}`}>
+              <div className="relative z-10 max-w-3xl mx-auto text-center space-y-4 md:space-y-8 lg:space-y-12">
+                <div className="space-y-2 md:space-y-4 lg:space-y-6">
+                  <div className="w-12 h-12 md:w-16 md:h-16 lg:w-24 lg:h-24 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-xl md:rounded-2xl lg:rounded-3xl flex items-center justify-center text-2xl md:text-3xl lg:text-5xl mx-auto mb-4 md:mb-6 lg:mb-8 shadow-2xl">🧠</div>
+                  <h2 className="text-lg md:text-2xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tighter">{t.ai_navigator_title}</h2>
+                  <p className="text-sm md:text-base lg:text-xl font-medium leading-relaxed opacity-80">{t.ai_navigator_desc}</p>
+                </div>
+                <div className={`p-4 md:p-6 lg:p-8 rounded-xl md:rounded-2xl lg:rounded-3xl border-2 border-dashed ${isAccessible ? 'border-white opacity-50' : 'border-slate-200 bg-slate-50'}`}>
+                  <p className={`text-xs md:text-sm lg:text-base font-medium ${isAccessible ? 'text-white' : 'text-slate-500'}`}>⚠️ {lang === 'ru' ? 'Для работы персонального помощника требуется API ключ. В локальном режиме эта функция отключена.' : 'Personal assistant requires an API key. This feature is disabled in local mode.'}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          <section className="max-w-7xl mx-auto px-4 md:px-6 space-y-6 md:space-y-8 lg:space-y-12">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
+              <div className="space-y-2 md:space-y-3 lg:space-y-4 text-center md:text-left">
+                <h2 className="text-xl md:text-2xl lg:text-4xl xl:text-5xl font-black tracking-tight uppercase">{t.video_hub_title}</h2>
+                <p className="text-sm md:text-base lg:text-lg font-medium max-w-xl opacity-60">{t.video_hub_desc}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-10">
+              {latestVideos.map(video => (
+                <div key={video.id} className={`group rounded-xl md:rounded-[2rem] lg:rounded-[3rem] p-3 md:p-4 lg:p-6 border transition-all cursor-pointer transform hover:-translate-y-2 md:hover:-translate-y-3 ${isAccessible ? 'bg-black border-white' : 'bg-white border-slate-200'}`} onClick={() => onNavigate('videos')}>
+                  <div className="h-32 md:h-40 lg:h-60 rounded-lg md:rounded-[1.5rem] lg:rounded-[2rem] mb-3 md:mb-4 lg:mb-8 relative overflow-hidden flex items-center justify-center text-white" style={{ background: video.gradient }}>
+                    <div className="w-10 h-10 md:w-14 md:h-14 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center shadow-2xl border border-white/20">
+                      <svg className="w-5 h-5 md:w-7 md:h-7 lg:w-10 lg:h-10 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                    </div>
+                  </div>
+                  <div className="space-y-1 md:space-y-2 lg:space-y-4 px-1 md:px-2">
+                    <h3 className="text-sm md:text-base lg:text-2xl font-black uppercase tracking-tighter group-hover:text-indigo-600 transition-colors">{video.title}</h3>
+                    <p className="text-xs md:text-sm lg:text-base line-clamp-2 leading-relaxed font-medium opacity-60">{video.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      );
+    };
+    
+    const CoursesPage = ({ onNavigate, lang, isAccessible, onStartCourse }) => {
+      const [searchTerm, setSearchTerm] = useState('');
+      const [selectedCategory, setSelectedCategory] = useState('all');
+      const [selectedLevel, setSelectedLevel] = useState('all');
+      const [enrolledCourse, setEnrolledCourse] = useState(null);
+      const t = translations[lang];
+      const categories = ['all', ...Array.from(new Set(COURSES.map(c => c.category)))];
+      const levels = ['all', ...Object.values(CourseLevel)];
+      const filteredCourses = useMemo(() => COURSES.filter(c => {
+        const matchSearch = c.title.toLowerCase().includes(searchTerm.toLowerCase()) || c.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchCategory = selectedCategory === 'all' || c.category === selectedCategory;
+        const matchLevel = selectedLevel === 'all' || c.level === selectedLevel;
+        return matchSearch && matchCategory && matchLevel;
+      }), [searchTerm, selectedCategory, selectedLevel]);
+      
+      const handleEnroll = course => { 
+        if (course.id === 'c7') {
+          onNavigate('fin');
+        } else {
+          onStartCourse(course); 
+          setEnrolledCourse(course);
+        }
+      };
+      
+      return (
+        <div className={`min-h-screen pb-20 md:pb-24 animate-fadeIn pt-20 md:pt-24 ${isAccessible ? 'bg-black' : ''}`}>
+          <section className={`pt-8 md:pt-12 lg:pt-16 pb-16 md:pb-24 lg:pb-32 relative overflow-hidden ${isAccessible ? 'bg-black border-b border-white' : 'bg-slate-900 text-white'}`}>
+            <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-4 md:space-y-6 lg:space-y-8">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black uppercase tracking-tighter">{t.nav_courses}</h1>
+              <p className="text-sm md:text-base lg:text-xl text-slate-400 font-medium max-w-2xl">{lang === 'ru' ? 'Выбирайте лучшие программы обучения от экспертов индустрии.' : 'Choose the best learning programs from industry experts.'}</p>
+              <div className="max-w-xl">
+                <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} type="text" placeholder={t.search_placeholder} className={`w-full py-2 md:py-3 lg:py-4 px-4 md:px-6 lg:px-8 rounded-xl md:rounded-2xl outline-none text-sm md:text-base font-bold shadow-2xl transition-all ${isAccessible ? 'bg-black border-2 md:border-4 border-white text-white' : 'bg-white text-slate-900 border-none'}`} />
+              </div>
+            </div>
+          </section>
+          <div className="max-w-7xl mx-auto px-4 md:px-6 -mt-6 md:-mt-8 lg:-mt-12 relative z-20 space-y-6 md:space-y-8 lg:space-y-12">
+            <div className={`p-3 md:p-4 lg:p-5 rounded-xl md:rounded-[1.5rem] lg:rounded-[2rem] border flex flex-wrap items-center justify-between gap-3 md:gap-4 lg:gap-6 ${isAccessible ? 'bg-black border-white' : 'bg-white border-slate-200 shadow-xl'}`}>
+              <div className="flex flex-wrap gap-1 md:gap-2">
+                {categories.map(cat => (
+                  <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-2 md:px-4 lg:px-5 py-1 md:py-2 lg:py-2.5 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all border ${selectedCategory === cat ? isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white' : isAccessible ? 'text-white border-white' : 'bg-slate-50 text-slate-500'}`}>
+                    {cat === 'all' ? t.all_categories : cat}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-1 md:gap-2">
+                {levels.map(lvl => (
+                  <button key={lvl} onClick={() => setSelectedLevel(lvl)} className={`px-2 md:px-4 lg:px-5 py-1 md:py-2 lg:py-2.5 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all border ${selectedLevel === lvl ? isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white' : isAccessible ? 'text-white border-white' : 'bg-slate-50 text-slate-500'}`}>
+                    {lvl === 'all' ? t.all_categories : lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-10">
+              {filteredCourses.map(course => (
+                <CourseCard 
+                  key={course.id} 
+                  course={course} 
+                  onEnroll={() => handleEnroll(course)} 
+                  lang={lang} 
+                  isAccessible={isAccessible} 
+                  isRecommended={course.id === 'c7'}
+                />
+              ))}
+            </div>
+          </div>
+          {enrolledCourse && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
+              <div className={`rounded-xl md:rounded-2xl lg:rounded-[2rem] shadow-2xl w-full max-w-md p-5 md:p-6 lg:p-8 xl:p-12 text-center space-y-3 md:space-y-4 lg:space-y-6 border ${
+                isAccessible ? 'bg-black border-white text-white' : 'bg-white text-slate-900 border-none'
+              }`}>
+                <h3 className="text-base md:text-lg lg:text-xl xl:text-2xl font-black uppercase tracking-tight break-words">
+                  {lang === 'ru' ? 'Отлично!' : 'Awesome!'}
+                </h3>
+                <p className="opacity-60 font-medium text-xs md:text-sm break-words">
+                  {lang === 'ru' ? 'Вы начали обучение по курсу' : 'You have started the course'}
+                  <br />
+                  <span className="text-indigo-600 font-black">«{enrolledCourse.title}»</span>
+                </p>
+                <button
+                  onClick={() => setEnrolledCourse(null)}
+                  className={`w-full py-2 md:py-3 lg:py-4 rounded-lg md:rounded-xl lg:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest transition-all ${
+                    isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white'
+                  }`}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+    
+    const VideosPage = ({ onNavigate, lang, isAccessible }) => {
+      const [selectedType, setSelectedType] = useState('all');
+      const [selectedVideo, setSelectedVideo] = useState(null);
+      const t = translations[lang];
+      const types = ['all', ...Object.values(VideoType)];
+      const filteredVideos = useMemo(() => (selectedType === 'all' ? VIDEOS : VIDEOS.filter(v => v.type === selectedType)), [selectedType]);
+      
+      return (
+        <div className={`min-h-screen pb-20 md:pb-24 lg:pb-32 animate-fadeIn transition-colors duration-500 pt-20 md:pt-24 ${isAccessible ? 'bg-black text-white' : 'bg-slate-950 text-white'}`}>
+          <section className={`pt-8 md:pt-12 lg:pt-16 pb-12 md:pb-16 lg:pb-20 ${isAccessible ? 'border-b border-white' : ''}`}>
+            <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-4 md:space-y-6 lg:space-y-8">
+              <span className={`inline-flex items-center px-3 md:px-4 py-1 md:py-2 rounded-full font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] ${isAccessible ? 'border-2 border-white text-white' : 'bg-white/5 border border-white/10 text-indigo-400'}`}>{lang === 'ru' ? 'Видео-хаб' : 'Video Hub'}</span>
+              <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black uppercase tracking-tighter">{t.video_hub_title}</h1>
+              <p className="text-sm md:text-base lg:text-xl text-slate-400 font-medium max-w-2xl">{t.video_hub_desc}</p>
+              <div className="flex flex-wrap gap-1 md:gap-2 lg:gap-3">
+                {types.map(type => (
+                  <button key={type} onClick={() => setSelectedType(type)} className={`px-3 md:px-5 lg:px-6 xl:px-8 py-1 md:py-2 lg:py-2.5 xl:py-3 rounded-lg md:rounded-xl lg:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all border-2 ${selectedType === type ? isAccessible ? 'bg-white text-black border-white' : 'bg-white text-slate-950 border-white shadow-xl shadow-white/10' : isAccessible ? 'bg-black text-white border-white' : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-400'}`}>
+                    {type === 'all' ? t.all_types : type}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+          <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-12 md:space-y-16 lg:space-y-20 -mt-8 md:-mt-12 lg:-mt-20 relative z-20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-10">
+              {filteredVideos.map(video => (
+                <div key={video.id} className={`group rounded-xl md:rounded-2xl lg:rounded-3xl border transition-all cursor-pointer flex flex-col h-full overflow-hidden shadow-2xl ${isAccessible ? 'bg-black border-white' : 'bg-white/5 border-white/5 hover:border-white/20'}`} onClick={() => setSelectedVideo(video)}>
+                  <div className="h-32 md:h-40 lg:h-56 relative flex items-center justify-center overflow-hidden" style={{ background: video.gradient }}>
+                    <div className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 xl:w-16 xl:h-16 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl border border-white/20">
+                      <svg className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 xl:w-8 xl:h-8 ml-0.5 md:ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                    </div>
+                    <div className="absolute bottom-1 md:bottom-2 lg:bottom-3 right-1 md:right-2 lg:right-3 xl:right-4 bg-black/70 px-1.5 md:px-2 lg:px-3 py-0.5 md:py-1 lg:py-1.5 rounded-lg md:rounded-xl text-[8px] md:text-[10px] lg:text-xs font-black uppercase tracking-widest">{video.durationMinutes} {lang === 'ru' ? 'МИН' : 'MIN'}</div>
+                  </div>
+                  <div className="p-3 md:p-4 lg:p-6 xl:p-8 space-y-1 md:space-y-2 lg:space-y-3 xl:space-y-4">
+                    <span className="text-[9px] md:text-[10px] lg:text-xs font-black text-indigo-400 uppercase tracking-widest">{video.category}</span>
+                    <h3 className="text-sm md:text-base lg:text-lg xl:text-2xl font-black leading-tight group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{video.title}</h3>
+                    <p className="text-slate-400 text-xs md:text-sm lg:text-base font-medium line-clamp-2 leading-relaxed opacity-80">{video.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {selectedVideo && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4 bg-black/95 backdrop-blur-xl animate-fadeIn">
+              <div className={`rounded-xl md:rounded-2xl lg:rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col lg:flex-row ${isAccessible ? 'bg-black border-4 border-white text-white' : 'bg-white text-slate-900'}`}>
+                <div className="lg:w-[65%] bg-black relative flex items-center justify-center p-4 md:p-6 lg:p-8 xl:p-12">
+                  <div className="text-center text-white space-y-2 md:space-y-3 lg:space-y-4 xl:space-y-6">
+                    <div className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 xl:w-24 xl:h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto cursor-pointer border border-white/20 hover:scale-105 transition-all">
+                      <svg className="w-5 h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 xl:w-12 xl:h-12 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                    </div>
+                    <div className="space-y-1 md:space-y-2">
+                      <h4 className="text-xs md:text-sm lg:text-base xl:text-lg font-black uppercase tracking-tight">{t.starting_playback}</h4>
+                      <p className="opacity-60 text-[10px] md:text-xs lg:text-sm font-medium">{selectedVideo.title}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedVideo(null)} className="absolute top-2 md:top-3 lg:top-4 xl:top-6 left-2 md:left-3 lg:left-4 xl:left-6 text-white/50 hover:text-white transition-all">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 xl:w-8 xl:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <div className={`lg:w-[35%] p-4 md:p-5 lg:p-6 xl:p-10 overflow-y-auto flex flex-col ${isAccessible ? 'bg-black border-l-4 border-white' : 'bg-white border-l border-slate-100'}`}>
+                  <div className="flex justify-between items-start mb-4 md:mb-6 lg:mb-8 xl:mb-10">
+                    <div className="space-y-1 md:space-y-2 lg:space-y-3">
+                      <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] lg:text-[10px] font-black uppercase tracking-widest ${isAccessible ? 'border border-white text-white' : 'bg-indigo-50 text-indigo-600'}`}>{selectedVideo.category}</span>
+                      <h3 className="text-sm md:text-base lg:text-lg xl:text-2xl font-black tracking-tight uppercase leading-tight">{selectedVideo.title}</h3>
+                    </div>
+                  </div>
+                  <p className={`text-xs md:text-sm lg:text-base font-medium leading-relaxed mb-4 md:mb-6 lg:mb-8 xl:mb-10 ${isAccessible ? 'text-white' : 'text-slate-600'}`}>{selectedVideo.description}</p>
+                  <div className="grid grid-cols-2 gap-2 md:gap-3 lg:gap-4 mb-4 md:mb-6 lg:mb-8 xl:mb-10">
+                    <div className={`p-2 md:p-3 lg:p-4 xl:p-6 rounded-lg md:rounded-xl lg:rounded-2xl border text-center shadow-sm ${isAccessible ? 'border-white' : 'bg-slate-50 border-slate-100'}`}>
+                      <span className="block text-[8px] md:text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 md:mb-2">{t.duration}</span>
+                      <span className={`text-xs md:text-sm lg:text-base xl:text-lg font-black ${isAccessible ? 'text-white' : 'text-slate-900'}`}>{selectedVideo.durationMinutes}{lang === 'ru' ? 'м' : 'm'}</span>
+                    </div>
+                    <div className={`p-2 md:p-3 lg:p-4 xl:p-6 rounded-lg md:rounded-xl lg:rounded-2xl border text-center shadow-sm ${isAccessible ? 'border-white' : 'bg-slate-50 border-slate-100'}`}>
+                      <span className="block text-[8px] md:text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 md:mb-2">{t.views}</span>
+                      <span className={`text-xs md:text-sm lg:text-base xl:text-lg font-black ${isAccessible ? 'text-white' : 'text-slate-900'}`}>{Math.floor(selectedVideo.views / 1000)}k</span>
+                    </div>
+                  </div>
+                  <div className="mt-auto space-y-1 md:space-y-2 lg:space-y-3">
+                    <button className={`w-full py-2 md:py-3 lg:py-4 xl:py-5 rounded-lg md:rounded-xl lg:rounded-2xl font-black text-[10px] md:text-xs lg:text-sm uppercase tracking-widest shadow-xl transition-all ${isAccessible ? 'bg-white text-black' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>{t.lesson_materials}</button>
+                    <button onClick={() => setSelectedVideo(null)} className={`w-full py-1.5 md:py-2 lg:py-2.5 xl:py-3 font-black text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs uppercase tracking-widest transition-colors ${isAccessible ? 'text-white underline' : 'text-slate-400 hover:text-slate-600'}`}>{t.close_player}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+    
+    const FinCoursePage = ({ lang, isAccessible, onNavigate }) => {
+      const [selectedTopic, setSelectedTopic] = useState(null);
+      const [selectedLevelColor, setSelectedLevelColor] = useState('emerald');
+      const [completedTopics, setCompletedTopics] = useState([]);
+      const [topicScores, setTopicScores] = useState({});
+      const [badges, setBadges] = useState([]);
+      
+      useEffect(() => {
+        const saved = localStorage.getItem('finLiteracyProgress');
+        if (saved) {
+          const data = JSON.parse(saved);
+          setCompletedTopics(data.completedTopics || []);
+          setTopicScores(data.topicScores || {});
+          setBadges(data.badges || []);
+        }
+      }, []);
+      
+      useEffect(() => {
+        localStorage.setItem('finLiteracyProgress', JSON.stringify({ completedTopics, topicScores, badges }));
+      }, [completedTopics, topicScores, badges]);
+      
+      useEffect(() => {
+        const newBadges = [];
+        const completedCount = completedTopics.length;
+        FIN_BADGES.forEach(badge => {
+          let earned = false;
+          if (badge.req === 1 && completedCount >= 1) earned = true;
+          if (badge.req === 8 && completedCount >= 8) earned = true;
+          if (badge.req === 16 && completedCount >= 16) earned = true;
+          if (badge.req === 24 && completedCount >= 24) earned = true;
+          if (badge.req === 5 && completedCount >= 5) earned = true;
+          if (earned && !badges.find(b => b.id === badge.id)) {
+            newBadges.push({ id: badge.id, earned: true, earnedAt: new Date().toISOString() });
+          }
+        });
+        if (newBadges.length > 0) setBadges(prev => [...prev, ...newBadges]);
+      }, [completedTopics]);
+      
+      const handleTopicComplete = (topicId, score) => {
+        if (!completedTopics.includes(topicId)) setCompletedTopics([...completedTopics, topicId]);
+        setTopicScores({ ...topicScores, [topicId]: score });
+      };
+      
+      const resetProgress = () => {
+        if (confirm('Сбросить весь прогресс?')) {
+          setCompletedTopics([]);
+          setTopicScores({});
+          setBadges([]);
+          localStorage.removeItem('finLiteracyProgress');
+        }
+      };
+      
+      const totalTopics = 24;
+      const completedCount = completedTopics.length;
+      const overallProgress = Math.round((completedCount / totalTopics) * 100);
+      
+      return (
+        <div className={`min-h-screen pb-20 md:pb-24 pt-20 md:pt-24 px-4 md:px-6 ${isAccessible ? 'bg-black text-white' : 'bg-[#F8FAFC] text-slate-900'}`}>
+          <div className={`sticky top-16 md:top-20 z-40 mb-4 md:mb-6 ${isAccessible ? 'bg-black' : 'bg-[#F8FAFC]'}`}>
+            <div className={`flex items-center justify-between p-2 md:p-3 lg:p-4 rounded-lg md:rounded-xl lg:rounded-2xl ${isAccessible ? 'bg-white border-2 border-white' : 'bg-white border border-slate-200 shadow-lg'}`}>
+              <div className="flex items-center gap-1 md:gap-2">
+                <button onClick={() => onNavigate('home')} className={`px-2 md:px-3 lg:px-4 py-1 md:py-1.5 lg:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs lg:text-sm font-black uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 ${isAccessible ? 'bg-black text-white hover:bg-slate-800' : 'bg-slate-100 text-slate-700 hover:bg-indigo-50'}`}>
+                  🏠 {lang === 'ru' ? 'На главную' : 'Home'}
+                </button>
+                <button onClick={() => onNavigate('courses')} className={`px-2 md:px-3 lg:px-4 py-1 md:py-1.5 lg:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs lg:text-sm font-black uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 ${isAccessible ? 'bg-black text-white hover:bg-slate-800' : 'bg-slate-100 text-slate-700 hover:bg-indigo-50'}`}>
+                  📚 {lang === 'ru' ? 'К курсам' : 'Courses'}
+                </button>
+              </div>
+              <div className={`text-[10px] md:text-xs lg:text-sm font-black uppercase tracking-widest ${isAccessible ? 'text-white' : 'text-slate-500'}`}>
+                💰 ФинГрамотность
+              </div>
+            </div>
+          </div>
+          
+          <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 lg:space-y-12 animate-fadeIn">
+            <section className={`rounded-xl md:rounded-2xl lg:rounded-[3rem] p-5 md:p-6 lg:p-8 xl:p-12 border ${isAccessible ? 'bg-black border-white' : 'bg-gradient-to-br from-emerald-600 to-indigo-600 text-white border-none shadow-2xl'}`}>
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 lg:gap-8">
+                <div className="space-y-2 md:space-y-3 lg:space-y-4 xl:space-y-6">
+                  <h1 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tighter">💰 Финансовая<br /><span className={isAccessible ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-indigo-300'}>Грамотность</span></h1>
+                  <p className={`text-xs md:text-sm lg:text-base xl:text-xl font-medium max-w-xl ${isAccessible ? 'text-white' : 'text-emerald-100'}`}>Полный курс из 24 тем в трёх уровнях. Короткие уроки (5-10 мин), тесты, бейджи и отслеживание прогресса.</p>
+                  <div className="flex flex-wrap gap-2 md:gap-3 lg:gap-4">
+                    <div className={`px-2 md:px-3 lg:px-4 xl:px-6 py-1.5 md:py-2 lg:py-2.5 xl:py-3 rounded-lg md:rounded-xl lg:rounded-2xl ${isAccessible ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-md'}`}><span className="block text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs font-black uppercase tracking-widest opacity-60">Прогресс</span><span className="text-sm md:text-base lg:text-lg xl:text-2xl font-black">{overallProgress}%</span></div>
+                    <div className={`px-2 md:px-3 lg:px-4 xl:px-6 py-1.5 md:py-2 lg:py-2.5 xl:py-3 rounded-lg md:rounded-xl lg:rounded-2xl ${isAccessible ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-md'}`}><span className="block text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs font-black uppercase tracking-widest opacity-60">Темы</span><span className="text-sm md:text-base lg:text-lg xl:text-2xl font-black">{completedCount}/{totalTopics}</span></div>
+                    <div className={`px-2 md:px-3 lg:px-4 xl:px-6 py-1.5 md:py-2 lg:py-2.5 xl:py-3 rounded-lg md:rounded-xl lg:rounded-2xl ${isAccessible ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-md'}`}><span className="block text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs font-black uppercase tracking-widest opacity-60">Бейджи</span><span className="text-sm md:text-base lg:text-lg xl:text-2xl font-black">{badges.length}/{FIN_BADGES.length}</span></div>
+                  </div>
+                </div>
+                <div className="text-5xl md:text-6xl lg:text-7xl xl:text-9xl animate-pulse-slow">🎓</div>
+              </div>
+            </section>
+            <div className="flex justify-end">
+              <button onClick={resetProgress} className={`px-2 md:px-3 lg:px-4 py-1 md:py-1.5 lg:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs lg:text-sm font-black uppercase tracking-widest border transition-all ${isAccessible ? 'border-white text-white' : 'border-rose-300 text-rose-600 hover:bg-rose-50'}`}>🔄 Сбросить прогресс</button>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
+              <FinStatsPanel completedTopics={completedTopics} topicScores={topicScores} badges={badges} isAccessible={isAccessible} />
+              <FinBadgesPanel badges={badges} isAccessible={isAccessible} />
+            </div>
+            <FinLevelSection level={FIN_COURSE_DATA.beginner} completedTopics={completedTopics} topicScores={topicScores} onTopicClick={(topic, color) => { setSelectedTopic(topic); setSelectedLevelColor(color); }} isAccessible={isAccessible} />
+            <FinLevelSection level={FIN_COURSE_DATA.intermediate} completedTopics={completedTopics} topicScores={topicScores} onTopicClick={(topic, color) => { setSelectedTopic(topic); setSelectedLevelColor(color); }} isAccessible={isAccessible} />
+            <FinLevelSection level={FIN_COURSE_DATA.advanced} completedTopics={completedTopics} topicScores={topicScores} onTopicClick={(topic, color) => { setSelectedTopic(topic); setSelectedLevelColor(color); }} isAccessible={isAccessible} />
+          </div>
+          {selectedTopic && <FinTopicViewer topic={selectedTopic} onClose={() => setSelectedTopic(null)} onComplete={handleTopicComplete} isAccessible={isAccessible} levelColor={selectedLevelColor} onNavigate={onNavigate} />}
+        </div>
+      );
+    };
+    
+    const ProfilePage = ({ lang, isAccessible, startedCourses, onLogout }) => {
+      const t = translations[lang];
+      return (
+        <div className="pt-20 md:pt-24 lg:pt-32 pb-16 md:pb-20 lg:pb-24 max-w-7xl mx-auto px-4 md:px-6 space-y-8 md:space-y-12 lg:space-y-16 animate-fadeIn">
+          <section className={`rounded-xl md:rounded-2xl lg:rounded-[3rem] p-5 md:p-6 lg:p-8 xl:p-20 border ${isAccessible ? 'bg-black border-white' : 'bg-white border-slate-200 shadow-xl'}`}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 lg:gap-8">
+              <div>
+                <h1 className="text-xl md:text-2xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tighter mb-2 md:mb-3 lg:mb-4">{t.profile_welcome} User</h1>
+                <p className="text-sm md:text-base lg:text-xl opacity-60 font-medium">{t.profile_progress}</p>
+              </div>
+              <button onClick={onLogout} className={`px-4 md:px-5 lg:px-6 xl:px-8 py-2 md:py-2.5 lg:py-3 xl:py-4 rounded-lg md:rounded-xl lg:rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest border transition-all ${isAccessible ? 'border-white text-white' : 'border-rose-100 text-rose-600 bg-rose-50 hover:bg-rose-100'}`}>{t.logout}</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mt-8 md:mt-10 lg:mt-12 xl:mt-16">
+              <div className={`p-4 md:p-5 lg:p-6 xl:p-8 rounded-xl md:rounded-2xl lg:rounded-[2rem] border ${isAccessible ? 'border-white' : 'bg-slate-50 border-slate-100'}`}><div className="text-[9px] md:text-[10px] lg:text-xs font-black uppercase tracking-widest opacity-50 mb-1 md:mb-2">{t.profile_stats_courses}</div><div className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black">{startedCourses.length}</div></div>
+              <div className={`p-4 md:p-5 lg:p-6 xl:p-8 rounded-xl md:rounded-2xl lg:rounded-[2rem] border ${isAccessible ? 'border-white' : 'bg-slate-50 border-slate-100'}`}><div className="text-[9px] md:text-[10px] lg:text-xs font-black uppercase tracking-widest opacity-50 mb-1 md:mb-2">{t.profile_stats_hours}</div><div className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black">0.0</div></div>
+              <div className={`p-4 md:p-5 lg:p-6 xl:p-8 rounded-xl md:rounded-2xl lg:rounded-[2rem] border ${isAccessible ? 'border-white' : 'bg-slate-50 border-slate-100'}`}><div className="text-[9px] md:text-[10px] lg:text-xs font-black uppercase tracking-widest opacity-50 mb-1 md:mb-2">{t.certificates}</div><div className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black">0</div></div>
+            </div>
+          </section>
+          <section className="space-y-4 md:space-y-6 lg:space-y-8 xl:space-y-12">
+            <h2 className="text-base md:text-lg lg:text-xl xl:text-3xl font-black uppercase tracking-tight border-l-4 border-indigo-600 pl-3 md:pl-4 lg:pl-5 xl:pl-6">{t.profile_started_courses}</h2>
+            {startedCourses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-10">
+                {startedCourses.map(course => (<CourseCard key={course.id} course={course} onEnroll={() => {}} lang={lang} isAccessible={isAccessible} />))}
+              </div>
+            ) : (
+              <div className={`p-8 md:p-12 lg:p-16 xl:p-20 rounded-xl md:rounded-2xl lg:rounded-[3rem] text-center border-4 border-dashed ${isAccessible ? 'border-white' : 'border-slate-100 text-slate-300'}`}><p className="text-sm md:text-base lg:text-xl font-black uppercase tracking-widest opacity-50 italic">{t.profile_no_courses}</p></div>
+            )}
+          </section>
+        </div>
+      );
+    };
+
+    // ==================== MAIN APP ====================
+    const App = () => {
+      const [currentPage, setCurrentPage] = useState('home');
+      const [lang, setLang] = useState('ru');
+      const [isAccessible, setIsAccessible] = useState(false);
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [showAuth, setShowAuth] = useState(false);
+      const [authType, setAuthType] = useState('login');
+      const [startedCourses, setStartedCourses] = useState([]);
+      
+      useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, [currentPage]);
+      
+      const toggleLang = () => setLang(prev => (prev === 'ru' ? 'en' : 'ru'));
+      const toggleAccessible = () => setIsAccessible(prev => !prev);
+      
+      const handleStartCourse = course => {
+        if (!startedCourses.find(c => c.id === course.id)) {
+          setStartedCourses([...startedCourses, course]);
+        }
+      };
+      
+      const renderPage = () => {
+        switch (currentPage) {
+          case 'courses': return <CoursesPage onNavigate={setCurrentPage} lang={lang} isAccessible={isAccessible} onStartCourse={handleStartCourse} />;
+          case 'videos': return <VideosPage onNavigate={setCurrentPage} lang={lang} isAccessible={isAccessible} />;
+          case 'fin': return <FinCoursePage lang={lang} isAccessible={isAccessible} onNavigate={setCurrentPage} />;
+          case 'profile': return <ProfilePage lang={lang} isAccessible={isAccessible} startedCourses={startedCourses} onLogout={() => { setIsLoggedIn(false); setCurrentPage('home'); }} />;
+          default: return <HomePage onNavigate={setCurrentPage} lang={lang} isAccessible={isAccessible} />;
+        }
+      };
+      
+      return (
+        <div className={`min-h-screen flex flex-col font-inter selection:bg-indigo-600 selection:text-white transition-colors duration-500 ${isAccessible ? 'accessibility-mode bg-black text-white' : 'bg-[#F8FAFC] text-slate-900'}`}>
+          <Navbar currentPage={currentPage} onNavigate={setCurrentPage} lang={lang} toggleLang={toggleLang} isAccessible={isAccessible} toggleAccessible={toggleAccessible} isLoggedIn={isLoggedIn} onAuth={() => { setAuthType('login'); setShowAuth(true); }} />
+          {renderPage()}
+          <Footer onNavigate={setCurrentPage} lang={lang} isAccessible={isAccessible} />
+          {showAuth && <AuthModal type={authType} lang={lang} onClose={() => setShowAuth(false)} onSuccess={() => { setIsLoggedIn(true); setShowAuth(false); }} isAccessible={isAccessible} />}
+          <MobileNav currentPage={currentPage} onNavigate={setCurrentPage} lang={lang} isAccessible={isAccessible} />
+        </div>
+      );
+    };
+    
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<React.StrictMode><App /></React.StrictMode>);
+  </script>
+</body>
+</html>
